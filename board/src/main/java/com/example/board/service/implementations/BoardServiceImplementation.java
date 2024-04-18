@@ -27,7 +27,6 @@ public class BoardServiceImplementation implements BoardService {
 
         try {
             // 1. 데이터베이스에서 최신순으로 데이터를 조회
-
         } catch (Exception exception) {
             return ResponseDto.databaseError();
             // ResponseDto body = new ResponseDto(ResponseCode.DATABASE_ERROR,

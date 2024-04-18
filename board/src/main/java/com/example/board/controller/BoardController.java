@@ -21,5 +21,4 @@ public class BoardController {
     public ResponseEntity<? super GetLatestListResponseDto> getLatestList() {
         return null;
     }
-
 }
