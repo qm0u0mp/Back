@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.CsrfConfig
 import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -20,6 +21,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.haneul.basic.filter.JwtAuthenticationFilter;
+import com.haneul.basic.provider.OAuth2SuccessHandler;
+import com.haneul.basic.service.implement.OAuth2UserServiceImplement;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,6 +40,8 @@ import lombok.RequiredArgsConstructor;
 public class WebSecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2UserServiceImplement oAuth2UserService;
+    private final OAuth2SuccessHandler oAuthSuccessHandler;
 
     // @Bean :
     // - Spring bean으로 등록하는 어노테이션
@@ -50,6 +55,7 @@ public class WebSecurityConfig {
         security
                 // basic authentication 미사용 지정
                 .httpBasic(HttpBasicConfigurer::disable)
+
                 // session :
                 // - 웹 애플리케이션에서 사용자의 대한 정보 및 상태를 유지하기 위한 기술
                 // - 서버측에서 사용자 정보 및 상태를 저장하는 방법
@@ -71,6 +77,7 @@ public class WebSecurityConfig {
                 // - 네트워크 캐시 : CDN
                 .sessionManagement(
                         sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 // CSRF (Cross-Site Request Forgery):
                 // - 클라이언트(사용자)가 자신의 의도와는 무관한 공격 행위를 하는 것
                 // SQL Injection :
@@ -78,23 +85,40 @@ public class WebSecurityConfig {
                 // XSS (Cross-Site Scripting) :
                 // - 공격자가 웹 브라우저에 악성 스크립트를 작성하여 실행시키는 공격
                 .csrf(CsrfConfigurer::disable)
+
                 // Spring Security 사용 이후에는 CORS 정책을 Security Filter Chain에 등록
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 // 요청 URL의 패턴에 따라 리소스 접근 허용 범위를 지정
                 // - 인증되지 않은 사용자도 접근을 허용
                 // - 인증된 사용자 중 특정 권한을 가지고 있는 사용자만 접근을 허용
                 // - 인증된 사용자는 모두 접근을 허용
                 .authorizeHttpRequests(request -> request
+                        // http://localhost:4000/oauth2/authorization/github
+                        .requestMatchers("/oauth2/**", "/").permitAll()
+
                         // 특정 URL 패턴에 대한 요청은 인증되지 않은 사용자도 접근을 허용
                         .requestMatchers(HttpMethod.GET, "/auth/**").permitAll()
+
                         // 특정 URL 패턴에 대한 요청은 지정한 권한을 가지고 있는 사용자만 접근을 허용
                         // .requestMatchers("/student", "/student/**").hasRole("STUDENT")
                         .requestMatchers("/student", "/student/**").permitAll()
+
                         // 인증된 사용자는 모두 접근을 허용
                         .anyRequest().authenticated())
+
+                .oauth2Login(oauth2 -> oauth2
+                        // OAuth 인증 서버에서 redirection 하는 URL
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/oauth2/callback/*"))
+                        // OAuth 인증 서버에서 인증 절차가 끝난 후 사용자에 대한 정보를 처리하는 객체를 지정
+                        .userInfoEndpoint(endpoint -> endpoint.userService(oAuth2UserService))
+                        // OAuth 인증 요청 성공시 처리하는 객체를 지정
+                        .successHandler(oAuthSuccessHandler))
+
                 // 인증 과정 중에 발생한 예외 처리
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(new FailedAuthenticationEntryPoint()));
+
         // 우리가 생성한 JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 이전에 등록
         security.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -113,9 +137,7 @@ public class WebSecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
-
     }
-
 }
 
 // 인증 실패 처리를 위한 커스텀 예외 (AuthenticationEntryPoint 인터페이스 구현)
@@ -131,5 +153,4 @@ class FailedAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.getWriter().write("{ \"message\": \"인증에 실패했습니다.\" }");
     }
-
 }
