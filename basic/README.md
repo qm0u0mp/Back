@@ -12,6 +12,7 @@ oauth2 client security
 
 ### Build
 ./gradlew clean build
+코드 변경 시 터미널에서 다시 실행 후 clean 작업하고 배포 작업 진행
 
 ### 배포
 java -jar build/libs/back-1.jar
