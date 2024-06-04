@@ -9,3 +9,12 @@ jpa
 security
 oauth2 client security
 => selected
+
+### Build
+./gradlew clean build
+
+### 배포
+java -jar build/libs/back-1.jar
+=> 브라우저 : localhost:4000 실행 시 local 환경에서 실행 중 ...
+java -jar -Dspring.profiles.active=development build/libs/back-1.jar
+=> 브라우저 : localhost:4000 실행 시 development환경에서 실행 중 ...
