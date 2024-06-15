@@ -21,7 +21,7 @@ java -jar -Dspring.profiles.active=development build/libs/back-1.jar
 => 브라우저 : localhost:4000 실행 시 development환경에서 실행 중 ...
 
 ### mySQL 엑셀 파일 임포트
-- E-R Diagram
+- E-R Diagram : 
 Database -> Syncronize Model with Database -> 넥스트 누르면서 비번, 체크 하기 -> finish
-- Schema
+- Schema : 
 엑셀 파일 넣을 테이블 컬럼 마우스 우클릭 -> Table Data Import Wizard -> 원하는 엑셀 파일 선택 -> 넥스트 -> finish
