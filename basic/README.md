@@ -9,8 +9,8 @@ f1- spring create gradle .. - 3.1.11 - java - com.경로명 - 파일명 - War - 
 - security
 - oauth2 client security
 
-- 선택이 끝난 후, Selected 숫자 dependencies 클릭
-- 저장 경로 설정 후 "Generate into this folder" 클릭
+선택이 끝난 후, Selected 숫자 dependencies 클릭 <br />
+저장 경로 설정 후 "Generate into this folder" 클릭
 
 
 ### Build
